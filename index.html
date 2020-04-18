@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trivia Game</title>
-  <link rel="stylesheet" href="style.css" />
-  <script defer src="script.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js"></script>
 </head>
 
 <body>
@@ -19,7 +19,8 @@
             <p class="name"></p>
             <p class="score">0</p>
         </div>
-    </template>
+      </template>
+
     </div>
     <div class="buttonsection">
       <button class="btn" id="add">Add</button>
@@ -70,6 +71,38 @@
 
 
 <script>
+
+  let peername = "";
+  let peerfriend = "";
+  let peer;
+  let conn;
+
+//Retrieving the username from localstrorage
+//Storing it in a variable
+
+ peername = "Taranjeet";
+ peer = new Peer(peername+"_103VCh1"); 
+
+peer.on('connection', function(conn) {
+    conn.on('data', function(data){
+        // Will print 'hi!'
+        console.log(data);
+    });
+});
+
+//Creating an array;
+
+let newarray = localStorage.getItem("friends");
+  if(newarray == null){
+    newarray = new Array();
+  }
+  else{
+      newarray = JSON.parse(newarray);
+  }
+  for (key in newarray){
+      addFriend(newarray[key]);
+  }
+
   function addFriend(name) {
       const template = document.querySelector("#friendtemplate");
       let newFriendCard = document.importNode(template.content, true);
@@ -77,30 +110,36 @@
       document.querySelector(".friendlist").appendChild(newFriendCard);
   }
 
+
   document.getElementById("add").addEventListener("click",()=>{
       let name = prompt("Enter a name");
-      farray.push(name);
-      localStorage.setItem("friends",JSON.stringify(farray));
+      newarray.push(name);
+      localStorage.setItem("friends",JSON.stringify(newarray));
+      console.log("Connection established");
+
+
+            peerfriend = name;
+            conn = peer.connect(peerfriend + '_103VCh1');
+            // on open will be launch when you successfully connect to PeerServer
+            conn.on('open', function(){
+                // here you have conn.id
+                conn.send('Connected to '+ peername +'!');
+            });
+
+
+
+
       addFriend(name);
   });
+
+  
+  
 
   document.getElementById("clear").addEventListener("click",()=>{
     localStorage.removeItem("friends");
     window.location.reload();
   });
-  //Creating an array;
-
-  let farray = localStorage.getItem("friends");
-  if(farray == null){
-    farray = new Array();
-  }
-  else{
-      farray = JSON.parse(farray);
-  }
-  for (key in farray){
-      addFriend(farray[key]);
-  }
-
+  
 
 //For animation
 
@@ -122,6 +161,10 @@ document.getElementById("exchange").addEventListener("click",()=>{
                     
                 });
         });
+
+//navigator.serviceWorker.register("serviceworker.js");
+
+
 </script>
 
 </body>
