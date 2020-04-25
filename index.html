@@ -1,172 +1,139 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trivia Game</title>
-  <link rel="stylesheet" href="styles.css" />
-  <script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Questions</title>
+    <style>
+        body{
+            background-color: grey;
+            color: white;
+            font-size: 2rem;
+        }
+        .questioncard{
+            background-color: #505050;
+            width: 60%;
+            padding: 20px;
+            margin: 50px 0px;
+        }
+        .optioncard{
+            width: 50%;
+            background-color: #303030;
+            padding: 10px;
+            margin: 10px;
+        }
+        .optioncard:active{
+            background-color: red;
+        }
+        p{
+            width: 100%;
+        }
+        #btn{
+            font-size: 1.5rem;
+            padding: 5px;
+        }
+        #score{
+            font-size: 3rem;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="side-container">
-    <h2>Friends</h2>
-    <div class="friendlist">
-
-      <template id="friendtemplate">
-        <div class="friend">
-            <p class="name"></p>
-            <p class="score">0</p>
+    <center>
+    <div class="questioncard">
+        <p>Question</p>
+        <p id="questiontxt"></p>
+    </div>
+    <div class="options">
+        <div class="optioncard">
+            <p class="option">Option 1</p>
         </div>
-      </template>
-
-    </div>
-    <div class="buttonsection">
-      <button class="btn" id="add">Add</button>
-      <button class="btn" id="clear">Clear</button>
-      <button class = "btn" id ="exchange">Exchange</button>
-    </div>
-  </div>
-  <div class="Imp-container">
-    <div class="left-side">
-      <div class="heading">
-        <h1 class="heading-text">Trivia Quiz Game</h1>
-      </div>
-      <div class="user-info">
-          <p class="user">Taranjeet</p>
-          <p class="user">0/0</p>
-      </div>
-    </div>
-    <div class="main-screen">
-      <div class="question-part">
-        <div class="question-card">
-          <p class="question-text">Q1. 'Good Friday' is observed to commemorate the event of?</p>
-
+        <div class="optioncard">
+            <p class="option">Option 2</p>
         </div>
-      </div>
-      <div class="options-wrapper">
-        <div class="options-div">
-          <div class="options-card">
-            <p class="options-text">birth of Jesus Christ</p>
-          </div>
-          <div class="options-card">
-            <p class="options-text">birth of St.Peter</p>
-          </div>
-          <div class="options-card">
-            <p class="options-text">crucification 'of Jesus Christ </p>
-          </div>
-          <div class="options-card">
-            <p class="options-text">rebirth of Jesus Christ</p>
-          </div>
+        <div class="optioncard">
+            <p class="option">Option 3</p>
         </div>
-      </div>
-
+        <div class="optioncard">
+            <p class="option">Option 4</p>
+        </div>
+        
     </div>
-
-    </span>
-  </div>
-
-  </div>
-
+    <input type="button" id="btn" value="Question">
+    <p id="score">0</p>
+</center>
+    
 
 <script>
 
-  let peername = "";
-  let peerfriend = "";
-  let peer;
-  let conn;
+// https://opentdb.com/api.php?amount=1&category=15&difficulty=easy&type=multiple
 
-//Retrieving the username from localstrorage
-//Storing it in a variable
 
- peername = "Taranjeet";
- peer = new Peer(peername+"_103VCh1"); 
+let question;
+let correct_answer;
+let options;
+let score = 0;
+var temporaryValue, randomIndex;
+let optionstxt = document.getElementsByClassName("option");
+for( let i=0; i<4; i++ ){
+    optionstxt[i].addEventListener("click", event => {
+        let clickedanswer = event.currentTarget.innerHTML;
+        if(clickedanswer == correct_answer){
+            score++;
+            document.getElementById("score").innerHTML = score;
+        }
+        questiongen();
 
-peer.on('connection', function(conn) {
-    conn.on('data', function(data){
-        // Will print 'hi!'
-        console.log(data);
     });
-});
+}
+var shuffle = function (array) {
 
-//Creating an array;
-
-let newarray = localStorage.getItem("friends");
-  if(newarray == null){
-    newarray = new Array();
-  }
-  else{
-      newarray = JSON.parse(newarray);
-  }
-  for (key in newarray){
-      addFriend(newarray[key]);
-  }
-
-  function addFriend(name) {
-      const template = document.querySelector("#friendtemplate");
-      let newFriendCard = document.importNode(template.content, true);
-      newFriendCard.querySelector(".name").innerHTML = name;
-      document.querySelector(".friendlist").appendChild(newFriendCard);
-  }
+var currentIndex = array.length;
 
 
-  document.getElementById("add").addEventListener("click",()=>{
-      let name = prompt("Enter a name");
-      newarray.push(name);
-      localStorage.setItem("friends",JSON.stringify(newarray));
-      console.log("Connection established");
+// While there remain elements to shuffle...
+while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
 
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+}
 
-            peerfriend = name;
-            conn = peer.connect(peerfriend + '_103VCh1');
-            // on open will be launch when you successfully connect to PeerServer
-            conn.on('open', function(){
-                // here you have conn.id
-                conn.send('Connected to '+ peername +'!');
-            });
+return array;
 
+};
+document.getElementById("btn").addEventListener("click",questiongen);
 
+function questiongen(){
 
+    fetch('https://opentdb.com/api.php?amount=1&category=15&difficulty=easy&type=multiple')
+  .then((response) => {
+    return response.json();
+  })
+  .then((data) => {
+         question = data.results[0].question;
+         correct_answer = data.results[0].correct_answer;
+         options = data.results[0].incorrect_answers;
+        options.push(correct_answer);
+        options = shuffle(options);
+        console.log("Function Ran")
+        document.getElementById("questiontxt").innerHTML = question;
+        for( let i=0; i<4; i++ ){
+            optionstxt[i].innerHTML = options[i];
 
-      addFriend(name);
-  });
-
-  
-  
-
-  document.getElementById("clear").addEventListener("click",()=>{
-    localStorage.removeItem("friends");
-    window.location.reload();
+        }
   });
   
+}
 
-//For animation
-
-document.getElementById("exchange").addEventListener("click",()=>{
-            document.querySelector(".question-card").animate(
-                [
-                    {
-                        transform: 'translateX(0px)'
-                    },
-                    {
-                        transform: 'translateX(-2000px)'
-                    }
-                    ,{
-                        transform: 'translateX(0px)'
-                    }
-                ], {
-                    duration: 700
-                
-                    
-                });
-        });
-
-navigator.serviceWorker.register("serviceworker.js");
-
-
+questiongen();
+navigator.serviceWorker.register("service.js");
 </script>
 
-</body>
 
+</body>
 </html>
